@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:FlappyBirdClone"
         mc:Ignorable="d"
         Title="FlappyBirdWindow" Height="500" Width="800">
+    <Window.Resources>
+        <FontFamily x:Key="font" >/fonts/terminal-grotesque_open.otf</FontFamily>
+    </Window.Resources>
     <Grid>
         <Canvas Background="SkyBlue" Name="GameScreen" Height="450" Width="800" ClipToBounds="True">
             <Canvas.LayoutTransform>
@@ -42,5 +45,9 @@
 
             </Rectangle>
         </Canvas>
+        <StackPanel Orientation="Vertical" >
+            <TextBlock x:Name="ScoreCounterTextBlock" HorizontalAlignment="Center" FontFamily="fonts/#Terminal Grotesque Open" FontSize="40">0
+            </TextBlock>
+        </StackPanel>
     </Grid>
 </Window>

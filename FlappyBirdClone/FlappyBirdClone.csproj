@@ -9,12 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="fonts\terminal-grotesque_open.otf" />
     <None Remove="images\background clouds.png" />
     <None Remove="images\background mountains.png" />
     <None Remove="images\foreground.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="fonts\terminal-grotesque_open.otf">
+      <CopyToOutputDirectory>fonts</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="images\background clouds.png">
       <CopyToOutputDirectory>textures</CopyToOutputDirectory>
     </Resource>

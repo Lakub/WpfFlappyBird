@@ -51,10 +51,25 @@ namespace FlappyBirdClone
         static public Pipe templatePipe;
         static public List<Pipe> pipes;
         public List<MovingModulo> backgroundProps;
-        static public int points;
+        static int points_val;
+        static public int points
+        {
+            get
+            {
+                return points_val;
+            }
+            set
+            {
+                points_val = value;
+                scoreCounter.Text = points.ToString();
+            }
+        }
+        static TextBlock scoreCounter;
         public FlappyBirdWindow()
         {
             InitializeComponent();
+            scoreCounter = ScoreCounterTextBlock;
+            points = 0;
             random = new();
             pipes = new();
             originalSize = new Size(this.Width, Height);
@@ -63,7 +78,7 @@ namespace FlappyBirdClone
             sw = new();
             sw.Start();
             backgroundProps = new();
-            backgroundProps.Add(new MovingModulo(Clouds,10));
+            backgroundProps.Add(new MovingModulo(Clouds,5));
             backgroundProps.Add(new MovingModulo(Mountains,15));
             backgroundProps.Add(new MovingModulo(Foreground,140));
             bird = new Bird(BirdSprite);
@@ -181,8 +196,13 @@ namespace FlappyBirdClone
         public override void Update()
         {
             Move(-speed * Time.deltaSeconds, 0);
-            if(Canvas.GetLeft(uiElement)<=-1600)
-                Canvas.SetLeft(uiElement, 0);
+            var x = Canvas.GetLeft(uiElement);
+            if (x <= -1600)
+            {
+                while (x <= -1600)
+                    x += 1600;
+                Canvas.SetLeft(uiElement, x);
+            }
         }
     }
 
@@ -194,6 +214,8 @@ namespace FlappyBirdClone
         static int maxYDistance = -630;
         static int startingX = 805;
         static int endingX = -105;
+
+        bool gavePoints;
 
         Pipe topPipe;
         public bool enabled
@@ -224,6 +246,7 @@ namespace FlappyBirdClone
         public void ResetPosition()
         {
             enabled = true;
+            gavePoints = false;
             Canvas.SetLeft(uiElement, startingX);
             var myY = FlappyBirdWindow.random.Next(minY, maxY + 1);
             Canvas.SetTop(uiElement, myY);
@@ -253,7 +276,13 @@ namespace FlappyBirdClone
             if(topPipe!=null)
                 topPipe.Update();
             Move(-140*Time.deltaSeconds, 0);
-            if (Canvas.GetLeft(uiElement) <= endingX)
+            var x = Canvas.GetLeft(uiElement);
+            if (!gavePoints && x <= 49 && topPipe != null)
+            {
+                FlappyBirdWindow.points += 1;
+                gavePoints = true;
+            }
+            if (x <= endingX)
                 enabled = false;
         }
     }
