@@ -14,7 +14,9 @@
             <Rectangle Name="BirdSprite"  Fill="Yellow" Width="50" Height="26" Canvas.Left="156" Canvas.Top="212">
                 
             </Rectangle>
+            <Rectangle Name="PipeSprite" Width="100" Height="500" Fill="Green" Canvas.Left="-151" Canvas.Top="-25">
 
+            </Rectangle>
         </Canvas>
     </Grid>
 </Window>

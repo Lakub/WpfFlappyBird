@@ -41,24 +41,25 @@ namespace FlappyBirdClone
         Stopwatch sw;
         Size originalSize;
         static public Canvas GameCanvas;
-        static public List<GameElement> gameElements;
+        static public Bird bird;
+        static public List<GameElement> pipes;
         public FlappyBirdWindow()
         {
             InitializeComponent();
-            gameElements = new();
+            pipes = new();
             originalSize = new Size(this.Width, Height);
             GameCanvas = GameScreen;
             Time.deltaSeconds=0;
             sw = new();
             sw.Start();
-            new Bird(BirdSprite);
-            CompositionTarget.Rendering += Test;
+            bird = new Bird(BirdSprite);
+            CompositionTarget.Rendering += UpdateGameElements;
             SizeChanged += ResizeCanvas;
             KeyDown += AlertBird;
         }
         public void AlertBird(object o, KeyEventArgs e)
         {
-            (gameElements[0] as Bird).KeyDown(e.Key);
+            bird.KeyDown(e.Key);
         }
         public void ResizeCanvas(object sender, SizeChangedEventArgs e)
         {
@@ -78,11 +79,12 @@ namespace FlappyBirdClone
             scale.ScaleX = scaleVal;
             scale.ScaleY = scaleVal;
         }
-        public void Test(object sender,EventArgs e)
+        public void UpdateGameElements(object sender,EventArgs e)
         {
             Time.deltaSeconds = sw.Elapsed.TotalSeconds;
             sw.Restart();
-            foreach (var element in gameElements)
+            bird.Update();
+            foreach (var element in pipes)
             {
                 element.Update();
             }
@@ -98,7 +100,6 @@ namespace FlappyBirdClone
         }
         protected GameElement(UIElement uiElement)
         {
-            FlappyBirdWindow.gameElements.Add(this);
             this.uiElement = uiElement;
         }
         protected void Move(double x, double y)
@@ -126,11 +127,11 @@ namespace FlappyBirdClone
         {
             if (jumpPressed)
             {
-                verticalAcceleration += 15;
+                verticalAcceleration = 100;
             }
             else
             {
-
+                verticalAcceleration -= 122*Time.deltaSeconds;
             }
             Move(0, verticalAcceleration * Time.deltaSeconds);
             jumpPressed = false;
