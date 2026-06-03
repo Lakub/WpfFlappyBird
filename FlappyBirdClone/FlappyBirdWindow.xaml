@@ -5,16 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlappyBirdClone"
         mc:Ignorable="d"
-        Title="FlappyBirdWindow" Height="450" Width="800">
+        Title="FlappyBirdWindow" Height="500" Width="800">
     <Grid>
         <Canvas Background="SkyBlue" Name="GameScreen" Height="450" Width="800" ClipToBounds="True">
             <Canvas.LayoutTransform>
                 <ScaleTransform/>
             </Canvas.LayoutTransform>
             <Rectangle Name="BirdSprite"  Fill="Yellow" Width="50" Height="26" Canvas.Left="156" Canvas.Top="212">
-                
+                <Rectangle.RenderTransform>
+                    <RotateTransform CenterX="4" CenterY="13"></RotateTransform>
+                </Rectangle.RenderTransform>
             </Rectangle>
-            <Rectangle Name="PipeSprite" Width="100" Height="500" Fill="Green" Canvas.Left="-151" Canvas.Top="-25">
+            <Rectangle Name="PipeSprite" Width="100" Height="500" Fill="Green" Canvas.Left="400" Canvas.Top="426" HorizontalAlignment="Left" VerticalAlignment="Center">
 
             </Rectangle>
         </Canvas>
