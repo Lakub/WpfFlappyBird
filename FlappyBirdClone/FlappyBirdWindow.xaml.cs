@@ -50,6 +50,7 @@ namespace FlappyBirdClone
         public Bird bird;
         static public Pipe templatePipe;
         static public List<Pipe> pipes;
+        public List<MovingModulo> backgroundProps;
         static public int points;
         public FlappyBirdWindow()
         {
@@ -61,16 +62,26 @@ namespace FlappyBirdClone
             Time.deltaSeconds=0;
             sw = new();
             sw.Start();
+            backgroundProps = new();
+            backgroundProps.Add(new MovingModulo(Clouds,10));
+            backgroundProps.Add(new MovingModulo(Mountains,15));
+            backgroundProps.Add(new MovingModulo(Foreground,140));
             bird = new Bird(BirdSprite);
             templatePipe = new Pipe(PipeSprite,false);
             templatePipe.enabled = false;
             CompositionTarget.Rendering += UpdateGameElements;
             SizeChanged += ResizeCanvas;
-            KeyDown += AlertBird;
+            KeyDown += AlertBirdKeyboard;
+            MouseDown += AlertBirdMouse;
         }
-        public void AlertBird(object o, KeyEventArgs e)
+        public void AlertBirdKeyboard(object o, KeyEventArgs e)
         {
-            bird.KeyDown(e.Key);
+            if (e.Key == Key.Up || e.Key == Key.Space || e.Key == Key.W)
+                bird.PressedJump();
+        }
+        public void AlertBirdMouse(object o, MouseButtonEventArgs e)
+        {
+            bird.PressedJump();
         }
         public void ResizeCanvas(object sender, SizeChangedEventArgs e)
         {
@@ -113,6 +124,8 @@ namespace FlappyBirdClone
             {
                 element.Update();
             }
+            foreach(var element in backgroundProps)
+                element.Update();
         }
     }
 
@@ -150,12 +163,35 @@ namespace FlappyBirdClone
         }
     }
 
+    public class MovingModulo : GameElement
+    {
+        double speed;
+        public MovingModulo(UIElement uiElement, double speed) : base(uiElement)
+        {
+            Canvas.SetLeft(uiElement, 0);
+            Canvas.SetTop(uiElement, 0);
+            this.speed = speed;
+        }
+
+        public override GameElement DeepCopy()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Update()
+        {
+            Move(-speed * Time.deltaSeconds, 0);
+            if(Canvas.GetLeft(uiElement)<=-1600)
+                Canvas.SetLeft(uiElement, 0);
+        }
+    }
+
     public class Pipe : GameElement
     {
         static int minY = 131;
         static int maxY = 426;
         static int minYDistance = -701;
-        static int maxYDistance = -615;
+        static int maxYDistance = -630;
         static int startingX = 805;
         static int endingX = -105;
 
@@ -177,6 +213,7 @@ namespace FlappyBirdClone
         public Pipe(UIElement uiElement, bool enabled=true) : base(uiElement)
         {
             if(enabled){
+                Trace.WriteLine("Created new pipes");
                 FlappyBirdWindow.pipes.Add(this);
                 topPipe = CreateTopPipe();
                 ResetPosition();
@@ -197,7 +234,6 @@ namespace FlappyBirdClone
             enabled = true;
             Canvas.SetLeft(uiElement, startingX);
             var pos = botY + FlappyBirdWindow.random.Next(minYDistance, maxYDistance + 1);
-            Trace.WriteLine(pos);
             Canvas.SetTop(uiElement, pos);
         }
 
@@ -238,7 +274,7 @@ namespace FlappyBirdClone
             }
             else
             {
-                verticalAcceleration -= 250*Time.deltaSeconds;
+                verticalAcceleration -= 350*Time.deltaSeconds;
             }
 
             rotateTransform.Angle += -verticalAcceleration * 5 * Time.deltaSeconds;
@@ -246,10 +282,9 @@ namespace FlappyBirdClone
             Move(0, verticalAcceleration * Time.deltaSeconds);
             jumpPressed = false;
         }
-        public void KeyDown(Key key)
+        public void PressedJump()
         {
-            if (key == Key.Up || key == Key.Space || key == Key.W)
-                jumpPressed = true;
+            jumpPressed = true;
         }
         public override GameElement DeepCopy()
         {

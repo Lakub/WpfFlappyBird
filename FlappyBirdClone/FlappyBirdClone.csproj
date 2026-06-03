@@ -8,4 +8,25 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="images\background clouds.png" />
+    <None Remove="images\background mountains.png" />
+    <None Remove="images\foreground.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="images\background clouds.png">
+      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\background mountains.png">
+      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\foreground.png">
+      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\thebird.png">
+      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
 </Project>

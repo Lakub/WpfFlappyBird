@@ -11,10 +11,32 @@
             <Canvas.LayoutTransform>
                 <ScaleTransform/>
             </Canvas.LayoutTransform>
-            <Rectangle Name="BirdSprite"  Fill="Yellow" Width="50" Height="26" Canvas.Left="156" Canvas.Top="212">
+            <Rectangle x:Name="Clouds" Width="2400" Height="450">
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/images/background clouds.png">
+                    </ImageBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Rectangle x:Name="Mountains" Width="2400" Height="450">
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/images/background mountains.png">
+                    </ImageBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Rectangle x:Name="Foreground" Width="2400" Height="450">
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/images/foreground.png">
+                    </ImageBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Rectangle Name="BirdSprite" Width="50" Height="26" Canvas.Left="156" Canvas.Top="212">
                 <Rectangle.RenderTransform>
                     <RotateTransform CenterX="4" CenterY="13"></RotateTransform>
                 </Rectangle.RenderTransform>
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/images/thebird.png">
+                    </ImageBrush>
+                </Rectangle.Fill>
             </Rectangle>
             <Rectangle Name="PipeSprite" Width="100" Height="500" Fill="Green" Canvas.Left="400" Canvas.Top="426" HorizontalAlignment="Left" VerticalAlignment="Center">
 
