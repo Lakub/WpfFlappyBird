@@ -16,7 +16,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Xml.Linq;
 
 namespace FlappyBirdClone
 {
@@ -46,6 +45,7 @@ namespace FlappyBirdClone
         public Random random;
         Stopwatch sw;
         Size originalSize;
+        int canvasWindowOriginalHeightDiff;
         public Bird bird;
         public Pipe templatePipe;
         public List<Pipe> pipes;
@@ -71,7 +71,8 @@ namespace FlappyBirdClone
             points = 0;
             random = new();
             pipes = new();
-            originalSize = new Size(this.Width, Height);
+            originalSize = new Size(Width, GameCanvas.Height);
+            canvasWindowOriginalHeightDiff = (int)(Height - GameCanvas.Height);
             Time.deltaSeconds=0;
             sw = new();
             sw.Start();
@@ -99,6 +100,7 @@ namespace FlappyBirdClone
             {
                 e.Restart();
             }
+            points = 0;
             GameOver = false;
         }
         public void AlertBirdKeyboard(object o, KeyEventArgs e)
@@ -120,8 +122,8 @@ namespace FlappyBirdClone
         public void ResizeCanvas(object sender, SizeChangedEventArgs e)
         {
             var scale = (GameCanvas.LayoutTransform as ScaleTransform);
-            var diffWidth = e.NewSize.Height / originalSize.Height;
-            var diffHeight = e.NewSize.Width / originalSize.Width;
+            var diffHeight = (e.NewSize.Height- canvasWindowOriginalHeightDiff) / originalSize.Height;
+            var diffWidth = e.NewSize.Width / originalSize.Width;
             double scaleVal = 0;
             if (diffWidth > diffHeight)
             {
@@ -336,9 +338,10 @@ namespace FlappyBirdClone
             if (topPipe != null)
                 if (topPipe.IsCollidingWithBird(birdBounds))
                     return true;
-            foreach(var bPoint in birdBounds)
+            for(int i=0;i<4;i++)
             {
-                if(IsPointInBounds(bPoint))
+
+                if (IsPointInBounds(birdBounds[i]))
                     return true;
             }
             return false;
@@ -402,15 +405,13 @@ namespace FlappyBirdClone
                 {
                     verticalAcceleration -= 350*Time.deltaSeconds;
                 }
-
-                rotateTransform.Angle += -verticalAcceleration * 5 * Time.deltaSeconds;
-                rotateTransform.Angle = Math.Clamp(rotateTransform.Angle, -30, 30);
             }
             else
             {
                 verticalAcceleration -= 350 * Time.deltaSeconds;
-
             }
+            rotateTransform.Angle += -verticalAcceleration * 5 * Time.deltaSeconds;
+            rotateTransform.Angle = Math.Clamp(rotateTransform.Angle, -30, 30);
             Move(0, verticalAcceleration * Time.deltaSeconds);
             if (IsColliding())
                 gameWindow.StopGame();
@@ -420,7 +421,7 @@ namespace FlappyBirdClone
         public bool IsColliding()
         {
             var bounds = GetBounds();
-            if (bounds[1].Y >= 440)
+            if (bounds.Any(e => e.Y >= 440))
             {
                 enabled = false;
                 return true;
@@ -441,12 +442,14 @@ namespace FlappyBirdClone
             var height = (uiElement as Rectangle).Height;
             var transform = rotateTransform.Value;
             Point[] points = new Point[] { new Point(0, 0), new Point(width, 0), new Point(width, height), new Point(0, height) };
+            
             double minX = 2000, maxX = 0, minY = 2000, maxY = 0;
             for (int i = 0; i < 4; i++)
             {
                 var point = points[i] * transform;
                 point.X += x;
                 point.Y += y;
+                points[i] = point;
                 if (point.Y > maxY)
                     maxY = point.Y;
                 if (point.Y < minY)
@@ -456,9 +459,7 @@ namespace FlappyBirdClone
                 if (point.X < minX)
                     minX = point.X;
             }
-            return new Point[] { new Point(minX, maxY), new Point(maxX,maxY), new Point(maxX, minY), new Point(minX, minY) };
-            // 4 3
-            // 1 2
+            return points;
         }
         public void PressedJump()
         {

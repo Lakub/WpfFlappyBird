@@ -12,7 +12,7 @@
     <Grid>
         <Canvas Background="SkyBlue" Name="GameCanvas" Height="450" Width="800" ClipToBounds="True">
             <Canvas.LayoutTransform>
-                <ScaleTransform/>
+                <ScaleTransform />
             </Canvas.LayoutTransform>
             <Rectangle x:Name="Clouds" Panel.ZIndex="1" Width="2400" Height="450">
                 <Rectangle.Fill>
@@ -32,7 +32,7 @@
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Rectangle Name="BirdSprite" Panel.ZIndex="20" Width="50" Height="26" Canvas.Left="156" Canvas.Top="112">
+            <Rectangle Name="BirdSprite" Panel.ZIndex="6" Width="50" Height="26" Canvas.Left="156" Canvas.Top="112">
                 <Rectangle.RenderTransform>
                     <RotateTransform CenterX="4" CenterY="13"></RotateTransform>
                 </Rectangle.RenderTransform>
