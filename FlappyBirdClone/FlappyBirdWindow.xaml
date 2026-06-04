@@ -10,19 +10,38 @@
         <FontFamily x:Key="font" >/fonts/terminal-grotesque_open.otf</FontFamily>
     </Window.Resources>
     <Grid>
-        <Canvas Background="SkyBlue" Name="GameCanvas" Height="450" Width="800" ClipToBounds="True">
+        <Canvas Name="GameCanvas" Height="450" Width="800" ClipToBounds="True">
+            <Canvas.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="CornflowerBlue"/>
+                    <GradientStop Offset="0.2" Color="SkyBlue"/>
+                    <GradientStop Offset="3"  Color="WhiteSmoke"/>
+                </LinearGradientBrush>
+            </Canvas.Background>
             <Canvas.LayoutTransform>
                 <ScaleTransform />
             </Canvas.LayoutTransform>
-            <Rectangle x:Name="Clouds" Panel.ZIndex="1" Width="2400" Height="450">
+            <Rectangle x:Name="Clouds" Panel.ZIndex="2" Width="2400" Height="450">
                 <Rectangle.Fill>
                     <ImageBrush ImageSource="/images/background clouds.png">
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Rectangle x:Name="Mountains" Panel.ZIndex="2" Width="2400" Height="450">
+            <Rectangle x:Name="BackClouds" Panel.ZIndex="0" Width="2400" Height="450">
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/images/background back clouds.png">
+                    </ImageBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Rectangle x:Name="Mountains" Panel.ZIndex="1" Width="2400" Height="450">
                 <Rectangle.Fill>
                     <ImageBrush ImageSource="/images/background mountains.png">
+                    </ImageBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Rectangle x:Name="MountainsClose" Panel.ZIndex="3" Width="2400" Height="450">
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/images/background close mountains.png">
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
@@ -41,8 +60,14 @@
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Rectangle Name="PipeSprite" Width="100" Height="500" Fill="Green" Panel.ZIndex="3" Canvas.Left="0" Canvas.Top="0" HorizontalAlignment="Left" VerticalAlignment="Center">
-
+            <Rectangle Name="PipeSprite" Width="100" Height="500" Panel.ZIndex="3" Canvas.Left="0" Canvas.Top="0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <Rectangle.RenderTransform>
+                    <ScaleTransform CenterX="50" CenterY="250"></ScaleTransform>
+                </Rectangle.RenderTransform>
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/images/pipe.png">
+                    </ImageBrush>
+                </Rectangle.Fill>
             </Rectangle>
         </Canvas>
         <StackPanel Orientation="Vertical" >

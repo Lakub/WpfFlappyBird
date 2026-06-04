@@ -10,26 +10,37 @@
 
   <ItemGroup>
     <None Remove="fonts\terminal-grotesque_open.otf" />
+    <None Remove="images\background back clouds.png" />
+    <None Remove="images\background close mountains.png" />
     <None Remove="images\background clouds.png" />
+    <None Remove="images\background haze.png" />
     <None Remove="images\background mountains.png" />
     <None Remove="images\foreground.png" />
+    <None Remove="images\pipe.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="fonts\terminal-grotesque_open.otf">
       <CopyToOutputDirectory>fonts</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="images\background back clouds.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\background close mountains.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="images\background clouds.png">
-      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="images\background mountains.png">
-      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="images\foreground.png">
-      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="images\pipe.png" />
     <Resource Include="images\thebird.png">
-      <CopyToOutputDirectory>textures</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
 
