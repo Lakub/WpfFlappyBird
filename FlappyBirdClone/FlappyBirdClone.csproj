@@ -38,7 +38,9 @@
     <Resource Include="images\foreground.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="images\pipe.png" />
+    <Resource Include="images\pipe.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="images\thebird.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
