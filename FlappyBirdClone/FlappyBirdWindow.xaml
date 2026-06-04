@@ -4,10 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlappyBirdClone"
+        xmlns:System="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d"
         Title="FlappyBirdWindow" Height="500" Width="800">
     <Window.Resources>
-        <FontFamily x:Key="font" >/fonts/terminal-grotesque_open.otf</FontFamily>
+        <FontFamily x:Key="font"  >fonts/#Terminal Grotesque Open</FontFamily>
+        <BitmapImage x:Key="MutedIcon" UriSource="images/mutedIcon.png" />
+        <BitmapImage x:Key="UnmutedIcon" UriSource="images/unmutedIcon.png" />
+        <System:Uri x:Key="vineBoomSound">sounds/flap-jack-scream.mp3</System:Uri>
     </Window.Resources>
     <Grid>
         <Canvas Name="GameCanvas" Height="450" Width="800" ClipToBounds="True">
@@ -71,8 +75,83 @@
             </Rectangle>
         </Canvas>
         <StackPanel Orientation="Vertical" >
-            <TextBlock x:Name="ScoreCounterTextBlock" HorizontalAlignment="Center" FontFamily="fonts/#Terminal Grotesque Open" FontSize="40">0
+            <TextBlock FontStretch="Condensed" x:Name="ScoreCounterTextBlock" HorizontalAlignment="Center" FontFamily="{StaticResource font}" FontSize="40">0
             </TextBlock>
         </StackPanel>
+        <Grid Name="PauseMenu" Visibility="Collapsed">
+            <Grid.Background>
+                <SolidColorBrush Color="Black" Opacity="0.2"></SolidColorBrush>
+            </Grid.Background>
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel.Background>
+                    <SolidColorBrush Color="Coral" Opacity="0.15"></SolidColorBrush>
+                </StackPanel.Background>
+                <TextBlock FontFamily="{StaticResource  font}" FontSize="60">Game Paused</TextBlock>
+                <Button FontFamily="{StaticResource  font}" FontSize="26" Click="UnpauseAction">Unpause</Button>
+                <Button FontFamily="{StaticResource  font}" FontSize="26" Click="ExitAction">Exit</Button>
+            </StackPanel>
+        </Grid>
+        <Grid Name="StartMenu" Visibility="Hidden">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Margin="80" HorizontalAlignment="Center" FontFamily="{StaticResource  font}" FontSize="60">
+                    <TextBlock.Background>
+                        <SolidColorBrush Color="Orange" Opacity="0.2"></SolidColorBrush>
+                    </TextBlock.Background>
+                    Flappy Bird Clone</TextBlock>
+                <TextBlock DockPanel.Dock="Bottom" Margin="70" VerticalAlignment="Bottom" HorizontalAlignment="Center" FontFamily="{StaticResource  font}" FontSize="40">Press anything to start</TextBlock>
+            </DockPanel>
+        </Grid>
+        <Grid Name="GameOverMenu" Visibility="Visible">
+            <Grid.Background>
+                <SolidColorBrush Color="Black" Opacity="0.2"></SolidColorBrush>
+            </Grid.Background>
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" >
+                <Grid.Background>
+                    <SolidColorBrush Color="Coral" Opacity="0.15"></SolidColorBrush>
+                </Grid.Background>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.RowSpan="2" Grid.Column="1" DockPanel.Dock="Right" >
+                    <TextBlock Margin="10,0,0,0" DockPanel.Dock="Right" FontFamily="{StaticResource  font}" FontSize="40">Leaderboard</TextBlock>
+                    <TextBlock Margin="10,0,0,0" HorizontalAlignment="Center" DockPanel.Dock="Right" FontFamily="{StaticResource  font}" FontSize="15">(TOP 5 SCORES)</TextBlock>
+                    <ItemsControl x:Name="LeaderboardScoresTable">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <WrapPanel>
+                                    <TextBlock FontFamily="{StaticResource  font}" FontSize="26" Text="{Binding UserName}" FontWeight="Bold" />
+                                    <TextBlock FontFamily="{StaticResource  font}" FontSize="26" Text=": "/>
+                                    <TextBlock FontFamily="{StaticResource  font}" FontSize="26" Text="{Binding Points}"/>
+                                </WrapPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" Name="UserInputScoreInput">
+                        <TextBlock DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="26">Name:</TextBlock>
+                        <TextBox x:Name="UserInputScoreName" Background="Transparent" BorderBrush="Black" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" Text="ABC" FontSize="26" Margin="10,0,20,0"></TextBox>
+                        <Button Click="AddScoreButton" Background="Transparent" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="26">Apply</Button>
+                    </StackPanel>
+                </StackPanel>
+                <TextBlock Grid.Row="0" Grid.Column="0" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="60">Game Over</TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="0" DockPanel.Dock="Top" Name="ScorePresentTextBlock" FontFamily="{StaticResource  font}" FontSize="60">Score:</TextBlock>
+                <Button Grid.Row="2" DockPanel.Dock="Top" Grid.Column="0" Background="Green" FontFamily="{StaticResource  font}" FontSize="26" Click="RestartAction">Restart</Button>
+                <Button Grid.Row="3" DockPanel.Dock="Top" Grid.Column="0" FontFamily="{StaticResource  font}" FontSize="26" Click="ExitAction">Exit</Button>
+            </Grid>
+        </Grid>
+        <DockPanel x:Name="SoundButtonParent">
+            <Button ToolTip="No sound is implemented" Width="50" Click="SoundButtonPress" Background="Transparent"  BorderThickness="0" Height="50" DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="20" VerticalAlignment="Bottom">
+                <Image Name="SoundButtonImage" Source="/images/unmutedIcon.png">
+                    
+                </Image>
+            </Button>
+        </DockPanel>
+
     </Grid>
 </Window>

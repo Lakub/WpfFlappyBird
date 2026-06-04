@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IO;
+using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -16,6 +19,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using FlappyBirdClone.Models;
+using Microsoft.EntityFrameworkCore;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace FlappyBirdClone
 {
@@ -52,6 +58,7 @@ namespace FlappyBirdClone
         public List<Pipe> pipes;
         public List<MovingModulo> backgroundProps;
         int points_val;
+        public bool gameStarted=false;
         public int points
         {
             get
@@ -64,10 +71,35 @@ namespace FlappyBirdClone
                 scoreCounter.Text = points.ToString();
             }
         }
+
+        bool muted_val;
+        public bool muted
+        {
+            get
+            {
+                return muted_val;
+            }
+            set
+            {
+                muted_val = value;
+                if (muted){
+                    SoundButtonImage.Source = FindResource("MutedIcon") as BitmapImage;
+                }
+                else{
+                    SoundButtonImage.Source = FindResource("UnmutedIcon") as BitmapImage;
+                }
+            }
+        }
         TextBlock scoreCounter;
+        AppDbContext context;
         public FlappyBirdWindow()
         {
             InitializeComponent();
+            context = new();
+            muted = true;
+            GameOverMenu.Visibility = Visibility.Collapsed;
+            PauseMenu.Visibility = Visibility.Collapsed;
+            StartMenu.Visibility = Visibility.Visible;
             scoreCounter = ScoreCounterTextBlock;
             points = 0;
             random = new();
@@ -92,6 +124,7 @@ namespace FlappyBirdClone
             SizeChanged += ResizeCanvas;
             KeyDown += AlertBirdKeyboard;
             MouseDown += AlertBirdMouse;
+            Deactivated += PauseAction;
         }
         void ResetGame()
         {
@@ -107,22 +140,76 @@ namespace FlappyBirdClone
             points = 0;
             counter = 0;
             GameOver = false;
+            GameOverMenu.Visibility = Visibility.Collapsed;
+            SoundButtonParent.Visibility=Visibility.Collapsed;
             sw.Restart();
         }
         public void AlertBirdKeyboard(object o, KeyEventArgs e)
         {
+            if (!gameStarted)
+                StartGame();
             if (e.Key == Key.Up || e.Key == Key.Space || e.Key == Key.W){
                 if (GameOver)
                     ResetGame();
                 else
                     bird.PressedJump();
             }
+            else if(e.Key == Key.Escape)
+            {
+                if (time.timeScale > 0)
+                    Pause();
+                else
+                    Unpause();
+            }
         }
+        void StartGame()
+        {
+            gameStarted = true;
+            StartMenu.Visibility = Visibility.Collapsed;
+            SoundButtonParent.Visibility=Visibility.Collapsed;
+        }
+        void Unpause()
+        {
+            if (GameOver) return;
+            time.timeScale = 1;
+            PauseMenu.Visibility= Visibility.Collapsed;
+            SoundButtonParent.Visibility=Visibility.Collapsed;
+            sw.Restart();
+        }
+        void Pause()
+        {
+            if (GameOver) return;
+            time.timeScale = 0;
+            PauseMenu.Visibility= Visibility.Visible;
+            SoundButtonParent.Visibility=Visibility.Visible;
+        }
+        void ExitAction(object o, EventArgs e)
+        {
+            Close();
+        }
+        void PauseAction(object o, EventArgs e)
+        {
+            Pause();
+        }
+        void PauseAction(object o, RoutedEventArgs e)
+        {
+            Pause();
+        }
+        void UnpauseAction(object o, RoutedEventArgs e)
+        {
+            Focus();
+            Unpause();
+        }
+        void RestartAction(object o, EventArgs e)
+        {
+            ResetGame();
+        }
+
         public void AlertBirdMouse(object o, MouseButtonEventArgs e)
         {
-            if (GameOver)
-                ResetGame();
-            else
+            if (!gameStarted)
+                StartGame();
+            if (!GameOver)
                 bird.PressedJump();
         }
         public void ResizeCanvas(object sender, SizeChangedEventArgs e)
@@ -144,6 +231,7 @@ namespace FlappyBirdClone
         }
         void CreatePipe()
         {
+            if (!gameStarted) return;
             if (GameOver) return;
             var pipe = pipes.Find(e => !e.enabled);
             if (pipe == null)
@@ -152,21 +240,11 @@ namespace FlappyBirdClone
                 pipe.ResetPosition();
         }
         double counter=0;
-        double fpsCounter=0;
-        int frames;
         public void UpdateGameElements(object sender,EventArgs e)
         {
             time.deltaSeconds = sw.Elapsed.TotalSeconds;
             sw.Restart();
-            frames++;
             counter += time.deltaSeconds;
-            fpsCounter += time.deltaSeconds;
-            if (fpsCounter >= 1)
-            {
-                Trace.WriteLine("FPS: " + frames);
-                fpsCounter = 0;
-                frames = 0;
-            }
             if (counter >= 3.8)
             {
                 counter = 0;
@@ -181,310 +259,336 @@ namespace FlappyBirdClone
                 element.Update();
         }
 
+        public void SoundButtonPress(object sender, RoutedEventArgs e)
+        {
+            muted = !muted;
+        }
+
         public bool GameOver;
-        public void StopGame()
+        public async void AddScoreButton(object o, RoutedEventArgs e)
         {
-            Trace.WriteLine("Died");
-            GameOver=true;
+            UserInputScoreInput.Visibility = Visibility.Hidden;
+            var score = new Score
+            {
+                UserName = UserInputScoreName.Text,
+                Points = points
+            };
+            await context.Scores.AddAsync(score);
+            await context.SaveChangesAsync();
+            LeaderboardScoresTable.ItemsSource = await GetTop5ScoresAsync();
+
+        }
+        Task<List<Score>> GetTop5ScoresAsync()
+        {
+            return context.Scores.AsQueryable().OrderByDescending(e => e.Points).Take(5).ToListAsync();
+        }
+        public async void StopGame()
+        {
+            GameOver = true;
+            UserInputScoreInput.Visibility = Visibility.Visible;
+            ScorePresentTextBlock.Text = "Score: " + points;
+            SoundButtonParent.Visibility = Visibility.Visible;
+            GameOverMenu.Visibility = Visibility.Visible;
+            LeaderboardScoresTable.ItemsSource = await GetTop5ScoresAsync();
+        }
+    }
+    public abstract class GameElement
+    {
+        public FlappyBirdWindow gameWindow;
+        public virtual bool enabled
+        {
+            get;
+            set;
+        }
+        public UIElement uiElement
+        {
+            get;
+            protected set;
+        }
+        protected GameElement(UIElement uiElement, FlappyBirdWindow gameWindow)
+        {
+            this.uiElement = uiElement;
+            this.gameWindow = gameWindow;
+        }
+        protected void Move(double x, double y)
+        {
+            Canvas.SetLeft(uiElement, Canvas.GetLeft(uiElement) + x);
+            Canvas.SetTop(uiElement, Canvas.GetTop(uiElement) - y);
+        }
+        abstract public void Update();
+        protected UIElement CopyElement()
+        {
+            string saved = XamlWriter.Save(uiElement);
+            string pattern = "Name\\s*=\\s*\"([a-zA-Z]*|\\s*|\\d*)\"\\s";
+            var element = XamlReader.Parse(Regex.Replace(saved, pattern, String.Empty));
+            gameWindow.GameCanvas.Children.Add(element as UIElement);
+            return element as UIElement;
         }
 
-
-        public abstract class GameElement
+        public abstract GameElement DeepCopy();
+        public void CreateCopy(GameElement gameElement)
         {
-            public FlappyBirdWindow gameWindow;
-            public virtual bool enabled
-            {
-                get;
-                set;
-            }
-            public UIElement uiElement
-            {
-                get;
-                protected set;
-            }
-            protected GameElement(UIElement uiElement, FlappyBirdWindow gameWindow)
-            {
-                this.uiElement = uiElement;
-                this.gameWindow = gameWindow;
-            }
-            protected void Move(double x, double y)
-            {
-                Canvas.SetLeft(uiElement, Canvas.GetLeft(uiElement) + x);
-                Canvas.SetTop(uiElement, Canvas.GetTop(uiElement) - y);
-            }
-            abstract public void Update();
-            protected UIElement CopyElement()
-            {
-                string saved = XamlWriter.Save(uiElement);
-                string pattern = "Name\\s*=\\s*\"([a-zA-Z]*|\\s*|\\d*)\"\\s";
-                var element = XamlReader.Parse(Regex.Replace(saved, pattern, String.Empty));
-                gameWindow.GameCanvas.Children.Add(element as UIElement);
-                return element as UIElement;
-            }
+            var elementClone = gameElement.DeepCopy();
+            gameWindow.GameCanvas.Children.Add(gameElement.uiElement);
+        }
+    }
 
-            public abstract GameElement DeepCopy();
-            public void CreateCopy(GameElement gameElement)
+    public class MovingModulo : GameElement
+    {
+        double speed;
+        public MovingModulo(UIElement uiElement, FlappyBirdWindow gameWindow, double speed) : base(uiElement, gameWindow)
+        {
+            Canvas.SetLeft(uiElement, gameWindow.random.Next(-1599, 0));
+            Canvas.SetTop(uiElement, 0);
+            this.speed = speed;
+            enabled = true;
+        }
+        public void Restart()
+        {
+            enabled = true;
+            Canvas.SetLeft(uiElement, gameWindow.random.Next(-1599, 0));
+        }
+
+        public override GameElement DeepCopy()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Update()
+        {
+            if (gameWindow.GameOver) return;
+            if (!enabled) return;
+            Move(-speed * gameWindow.time.deltaSeconds, 0);
+            var x = Canvas.GetLeft(uiElement);
+            if (x <= -1600)
             {
-                var elementClone = gameElement.DeepCopy();
-                gameWindow.GameCanvas.Children.Add(gameElement.uiElement);
+                while (x <= -1600)
+                    x += 1600;
+                Canvas.SetLeft(uiElement, x);
+            }
+        }
+    }
+
+    public class Pipe : GameElement
+    {
+        int minY = 131;
+        int maxY = 406;
+        int minYDistance = -701;
+        int maxYDistance = -640;
+        int startingX = 805;
+        int endingX = -105;
+
+        bool gavePoints;
+
+        Pipe topPipe;
+        double width, height;
+        double[] bounds;
+        public override bool enabled
+        {
+            get
+            {
+                return uiElement.Visibility == Visibility.Visible;
+            }
+            set
+            {
+                if (value)
+                    uiElement.Visibility = Visibility.Visible;
+                else
+                    uiElement.Visibility = Visibility.Collapsed;
             }
         }
 
-        public class MovingModulo : GameElement
+        public void Restart()
         {
-            double speed;
-            public MovingModulo(UIElement uiElement, FlappyBirdWindow gameWindow, double speed) : base(uiElement, gameWindow)
-            {
-                Canvas.SetLeft(uiElement, gameWindow.random.Next(-1599, 0));
-                Canvas.SetTop(uiElement, 0);
-                this.speed = speed;
-                enabled = true;
-            }
-            public void Restart()
-            {
-                enabled = true;
-                Canvas.SetLeft(uiElement, gameWindow.random.Next(-1599, 0));
-            }
-
-            public override GameElement DeepCopy()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Update()
-            {
-                if (gameWindow.GameOver) return;
-                if (!enabled) return;
-                Move(-speed * gameWindow.time.deltaSeconds, 0);
-                var x = Canvas.GetLeft(uiElement);
-                if (x <= -1600)
-                {
-                    while (x <= -1600)
-                        x += 1600;
-                    Canvas.SetLeft(uiElement, x);
-                }
-            }
+            if (topPipe != null)
+                topPipe.Restart();
+            enabled = false;
         }
-
-        public class Pipe : GameElement
+        public Pipe(UIElement uiElement, FlappyBirdWindow gameWindow, bool enabled = true) : base(uiElement, gameWindow) // for the bottom pipe
         {
-            int minY = 131;
-            int maxY = 406;
-            int minYDistance = -701;
-            int maxYDistance = -640;
-            int startingX = 805;
-            int endingX = -105;
-
-            bool gavePoints;
-
-            Pipe topPipe;
-            double width, height;
-            double[] bounds;
-            public override bool enabled
+            if (enabled)
             {
-                get
-                {
-                    return uiElement.Visibility == Visibility.Visible;
-                }
-                set
-                {
-                    if (value)
-                        uiElement.Visibility = Visibility.Visible;
-                    else
-                        uiElement.Visibility = Visibility.Collapsed;
-                }
-            }
-
-            public void Restart()
-            {
-                if (topPipe != null)
-                    topPipe.Restart();
-                enabled = false;
-            }
-            public Pipe(UIElement uiElement, FlappyBirdWindow gameWindow, bool enabled = true) : base(uiElement, gameWindow) // for the bottom pipe
-            {
-                if (enabled)
-                {
-                    Trace.WriteLine("Created new pipes");
-                    gameWindow.pipes.Add(this);
-                    topPipe = CreateTopPipe();
-                    InitBounds();
-                    ResetPosition();
-                }
-            }
-            public Pipe(UIElement uiElement, FlappyBirdWindow gameWindow, int dum) : base(uiElement, gameWindow)
-            { // for the top pipe
+                Trace.WriteLine("Created new pipes");
+                gameWindow.pipes.Add(this);
+                topPipe = CreateTopPipe();
                 InitBounds();
-                ((uiElement as Rectangle).RenderTransform as ScaleTransform).ScaleY = -1;
-            }
-
-            void InitBounds()
-            {
-                width = (uiElement as Rectangle).Width;
-                height = (uiElement as Rectangle).Height;
-                bounds = new double[4];
-            }
-
-            public void ResetPosition()
-            {
-                enabled = true;
-                gavePoints = false;
-                Canvas.SetLeft(uiElement, startingX);
-                var myY = gameWindow.random.Next(minY, maxY + 1);
-                Canvas.SetTop(uiElement, myY);
-                topPipe.ResetTopPosition(myY);
-            }
-            public void ResetTopPosition(int botY)
-            {
-                enabled = true;
-                Canvas.SetLeft(uiElement, startingX);
-                var pos = botY + gameWindow.random.Next(minYDistance, maxYDistance + 1);
-                Canvas.SetTop(uiElement, pos);
-            }
-
-            public Pipe CreateTopPipe()
-            {
-                return new Pipe(CopyElement(), gameWindow, 0);
-            }
-
-            public override GameElement DeepCopy()
-            {
-                return new Pipe(CopyElement(), gameWindow);
-            }
-
-            public bool IsCollidingWithBird(Point[] birdBounds)
-            {
-                if (gavePoints)
-                    return false;
-                if (topPipe != null)
-                    if (topPipe.IsCollidingWithBird(birdBounds))
-                        return true;
-                bounds[0] = Canvas.GetLeft(uiElement);
-                bounds[1] = bounds[0] + width;
-                bounds[2] = Canvas.GetTop(uiElement);
-                bounds[3] = bounds[2] + height;
-                for (int i = 0; i < 4; i++)
-                {
-                    if (IsPointInBounds(birdBounds[i]))
-                        return true;
-                }
-                return false;
-            }
-            bool IsPointInBounds(Point point)
-            {
-                // 0 1
-                // 2 3
-                if (point.X > bounds[0] && point.X < bounds[1]
-                    && point.Y > bounds[2] && point.Y < bounds[3])
-                    return true;
-                return false;
-            }
-
-            public override void Update()
-            {
-                if (!enabled) return;
-                if (gameWindow.GameOver) return;
-                if (topPipe != null)
-                    topPipe.Update();
-                Move(-140 * gameWindow.time.deltaSeconds, 0);
-                var x = Canvas.GetLeft(uiElement);
-                if (!gavePoints && x <= 49 && topPipe != null)
-                {
-                    gameWindow.points += 1;
-                    gavePoints = true;
-                }
-                if (x <= endingX)
-                    enabled = false;
+                ResetPosition();
             }
         }
-        public class Bird : GameElement
+        public Pipe(UIElement uiElement, FlappyBirdWindow gameWindow, int dum) : base(uiElement, gameWindow)
+        { // for the top pipe
+            InitBounds();
+            ((uiElement as Rectangle).RenderTransform as ScaleTransform).ScaleY = -1;
+        }
+
+        void InitBounds()
         {
-            bool jumpPressed;
-            double verticalAcceleration;
-            RotateTransform rotateTransform;
-            int startingY = 112;
-            public Bird(UIElement uiElement, FlappyBirdWindow gameWindow) : base(uiElement, gameWindow)
+            width = (uiElement as Rectangle).Width;
+            height = (uiElement as Rectangle).Height;
+            bounds = new double[4];
+        }
+
+        public void ResetPosition()
+        {
+            enabled = true;
+            gavePoints = false;
+            Canvas.SetLeft(uiElement, startingX);
+            var myY = gameWindow.random.Next(minY, maxY + 1);
+            Canvas.SetTop(uiElement, myY);
+            topPipe.ResetTopPosition(myY);
+        }
+        public void ResetTopPosition(int botY)
+        {
+            enabled = true;
+            Canvas.SetLeft(uiElement, startingX);
+            var pos = botY + gameWindow.random.Next(minYDistance, maxYDistance + 1);
+            Canvas.SetTop(uiElement, pos);
+        }
+
+        public Pipe CreateTopPipe()
+        {
+            return new Pipe(CopyElement(), gameWindow, 0);
+        }
+
+        public override GameElement DeepCopy()
+        {
+            return new Pipe(CopyElement(), gameWindow);
+        }
+
+        public bool IsCollidingWithBird(Point[] birdBounds)
+        {
+            if (gavePoints)
+                return false;
+            if (topPipe != null)
+                if (topPipe.IsCollidingWithBird(birdBounds))
+                    return true;
+            bounds[0] = Canvas.GetLeft(uiElement);
+            bounds[1] = bounds[0] + width;
+            bounds[2] = Canvas.GetTop(uiElement);
+            bounds[3] = bounds[2] + height;
+            for (int i = 0; i < 4; i++)
             {
-                rotateTransform = uiElement.RenderTransform as RotateTransform;
-                enabled = true;
+                if (IsPointInBounds(birdBounds[i]))
+                    return true;
             }
-            public void Restart()
+            return false;
+        }
+        bool IsPointInBounds(Point point)
+        {
+            // 0 1
+            // 2 3
+            if (point.X > bounds[0] && point.X < bounds[1]
+                && point.Y > bounds[2] && point.Y < bounds[3])
+                return true;
+            return false;
+        }
+
+        public override void Update()
+        {
+            if (!enabled) return;
+            if (!gameWindow.gameStarted) return;
+            if (gameWindow.GameOver) return;
+            if (topPipe != null)
+                topPipe.Update();
+            Move(-140 * gameWindow.time.deltaSeconds, 0);
+            var x = Canvas.GetLeft(uiElement);
+            if (!gavePoints && x <= 49 && topPipe != null)
             {
-                Canvas.SetTop(uiElement, startingY);
-                verticalAcceleration = 0;
-                enabled = true;
-                rotateTransform.Angle = 0;
+                gameWindow.points += 1;
+                gavePoints = true;
             }
-            public override void Update()
+            if (x <= endingX)
+                enabled = false;
+        }
+    }
+    public class Bird : GameElement
+    {
+        bool jumpPressed;
+        double verticalAcceleration;
+        RotateTransform rotateTransform;
+        int startingY = 112;
+        public Bird(UIElement uiElement, FlappyBirdWindow gameWindow) : base(uiElement, gameWindow)
+        {
+            rotateTransform = uiElement.RenderTransform as RotateTransform;
+            enabled = true;
+        }
+        public void Restart()
+        {
+            Canvas.SetTop(uiElement, startingY);
+            verticalAcceleration = 0;
+            enabled = true;
+            rotateTransform.Angle = 0;
+        }
+        public override void Update()
+        {
+            if (!enabled) return;
+            if (!gameWindow.gameStarted) return;
+            if (!gameWindow.GameOver)
             {
-                if (!enabled) return;
-                if (!gameWindow.GameOver)
+                if (jumpPressed)
                 {
-                    if (jumpPressed)
-                    {
-                        verticalAcceleration = 400;
-                    }
-                    else
-                    {
-                        verticalAcceleration -= 850 * gameWindow.time.deltaSeconds;
-                    }
+                    verticalAcceleration = 400;
                 }
                 else
                 {
                     verticalAcceleration -= 850 * gameWindow.time.deltaSeconds;
                 }
-                rotateTransform.Angle += -verticalAcceleration * 5 * gameWindow.time.deltaSeconds;
-                rotateTransform.Angle = Math.Clamp(rotateTransform.Angle, -30, 30);
-                Move(0, verticalAcceleration * gameWindow.time.deltaSeconds);
-                if (IsColliding())
-                    gameWindow.StopGame();
-                jumpPressed = false;
             }
-
-            public bool IsColliding()
+            else
             {
-                var bounds = GetBounds();
-                if (bounds.Any(e => e.Y >= 440))
+                verticalAcceleration -= 850 * gameWindow.time.deltaSeconds;
+            }
+            rotateTransform.Angle += -verticalAcceleration * 5 * gameWindow.time.deltaSeconds;
+            rotateTransform.Angle = Math.Clamp(rotateTransform.Angle, -30, 30);
+            Move(0, verticalAcceleration * gameWindow.time.deltaSeconds);
+            if (IsColliding())
+                gameWindow.StopGame();
+            jumpPressed = false;
+        }
+
+        public bool IsColliding()
+        {
+            var bounds = GetBounds();
+            if (bounds.Any(e => e.Y >= 440))
+            {
+                enabled = false;
+                return true;
+            }
+            if (!gameWindow.GameOver)
+                foreach (var pipe in gameWindow.pipes)
                 {
-                    enabled = false;
-                    return true;
+                    if (!pipe.enabled) continue;
+                    if (pipe.IsCollidingWithBird(bounds)) return true;
                 }
-                if (!gameWindow.GameOver)
-                    foreach (var pipe in gameWindow.pipes)
-                    {
-                        if (!pipe.enabled) continue;
-                        if (pipe.IsCollidingWithBird(bounds)) return true;
-                    }
-                return false;
-            }
-            double leeRoom = 1.5;
-            public Point[] GetBounds()
-            {
-                var x = Canvas.GetLeft(uiElement);
-                var y = Canvas.GetTop(uiElement);
-                var width = (uiElement as Rectangle).Width;
-                var height = (uiElement as Rectangle).Height;
-                var transform = rotateTransform.Value;
-                Point[] points = new Point[] { new Point(leeRoom, leeRoom), new Point(width - leeRoom, leeRoom), new Point(width - leeRoom, height - leeRoom), new Point(leeRoom, height - leeRoom) };
+            return false;
+        }
+        double leeRoom = 1.5;
+        public Point[] GetBounds()
+        {
+            var x = Canvas.GetLeft(uiElement);
+            var y = Canvas.GetTop(uiElement);
+            var width = (uiElement as Rectangle).Width;
+            var height = (uiElement as Rectangle).Height;
+            var transform = rotateTransform.Value;
+            Point[] points = new Point[] { new Point(leeRoom, leeRoom), new Point(width - leeRoom, leeRoom), new Point(width - leeRoom, height - leeRoom), new Point(leeRoom, height - leeRoom) };
 
-                double minX = 2000, maxX = 0, minY = 2000, maxY = 0;
-                for (int i = 0; i < 4; i++)
-                {
-                    points[i] = points[i] * transform;
-                    points[i].X += x;
-                    points[i].Y += y;
-                }
-                return points;
-            }
-            public void PressedJump()
+            double minX = 2000, maxX = 0, minY = 2000, maxY = 0;
+            for (int i = 0; i < 4; i++)
             {
-                jumpPressed = true;
+                points[i] = points[i] * transform;
+                points[i].X += x;
+                points[i].Y += y;
             }
-            public override GameElement DeepCopy()
-            {
+            return points;
+        }
+        public void PressedJump()
+        {
+            jumpPressed = true;
+        }
+        public override GameElement DeepCopy()
+        {
 
-                return new Bird(CopyElement(), gameWindow);
-            }
+            return new Bird(CopyElement(), gameWindow);
         }
     }
 }
