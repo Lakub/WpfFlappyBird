@@ -459,13 +459,18 @@ namespace FlappyBirdClone
         {
             if (gavePoints)
                 return false;
-            if (topPipe != null)
+            if (topPipe != null){
                 if (topPipe.IsCollidingWithBird(birdBounds))
                     return true;
+                bounds[2] = Canvas.GetTop(uiElement);
+            }
+            else
+            {
+                bounds[2] = double.MinValue;
+            }
             bounds[0] = Canvas.GetLeft(uiElement);
             bounds[1] = bounds[0] + width;
-            bounds[2] = Canvas.GetTop(uiElement);
-            bounds[3] = bounds[2] + height;
+            bounds[3] = Canvas.GetTop(uiElement) + height;
             for (int i = 0; i < 4; i++)
             {
                 if (IsPointInBounds(birdBounds[i]))

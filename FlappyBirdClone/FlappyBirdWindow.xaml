@@ -11,7 +11,7 @@
         <FontFamily x:Key="font"  >fonts/#Terminal Grotesque Open</FontFamily>
         <BitmapImage x:Key="MutedIcon" UriSource="images/mutedIcon.png" />
         <BitmapImage x:Key="UnmutedIcon" UriSource="images/unmutedIcon.png" />
-        <System:Uri x:Key="vineBoomSound">sounds/flap-jack-scream.mp3</System:Uri>
+        <System:Uri x:Key="sound">a</System:Uri>
     </Window.Resources>
     <Grid>
         <Canvas Name="GameCanvas" Height="450" Width="800" ClipToBounds="True">
