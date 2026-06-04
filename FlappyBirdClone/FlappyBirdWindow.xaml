@@ -10,29 +10,29 @@
         <FontFamily x:Key="font" >/fonts/terminal-grotesque_open.otf</FontFamily>
     </Window.Resources>
     <Grid>
-        <Canvas Background="SkyBlue" Name="GameScreen" Height="450" Width="800" ClipToBounds="True">
+        <Canvas Background="SkyBlue" Name="GameCanvas" Height="450" Width="800" ClipToBounds="True">
             <Canvas.LayoutTransform>
                 <ScaleTransform/>
             </Canvas.LayoutTransform>
-            <Rectangle x:Name="Clouds" Width="2400" Height="450">
+            <Rectangle x:Name="Clouds" Panel.ZIndex="1" Width="2400" Height="450">
                 <Rectangle.Fill>
                     <ImageBrush ImageSource="/images/background clouds.png">
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Rectangle x:Name="Mountains" Width="2400" Height="450">
+            <Rectangle x:Name="Mountains" Panel.ZIndex="2" Width="2400" Height="450">
                 <Rectangle.Fill>
                     <ImageBrush ImageSource="/images/background mountains.png">
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Rectangle x:Name="Foreground" Width="2400" Height="450">
+            <Rectangle x:Name="Foreground" Panel.ZIndex="4" Width="2400" Height="450">
                 <Rectangle.Fill>
                     <ImageBrush ImageSource="/images/foreground.png">
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Rectangle Name="BirdSprite" Width="50" Height="26" Canvas.Left="156" Canvas.Top="212">
+            <Rectangle Name="BirdSprite" Panel.ZIndex="20" Width="50" Height="26" Canvas.Left="156" Canvas.Top="112">
                 <Rectangle.RenderTransform>
                     <RotateTransform CenterX="4" CenterY="13"></RotateTransform>
                 </Rectangle.RenderTransform>
@@ -41,7 +41,7 @@
                     </ImageBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <Rectangle Name="PipeSprite" Width="100" Height="500" Fill="Green" Canvas.Left="400" Canvas.Top="426" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <Rectangle Name="PipeSprite" Width="100" Height="500" Fill="Green" Panel.ZIndex="3" Canvas.Left="0" Canvas.Top="0" HorizontalAlignment="Left" VerticalAlignment="Center">
 
             </Rectangle>
         </Canvas>
