@@ -153,18 +153,22 @@ namespace FlappyBirdClone
         {
             if (!gameStarted)
                 StartGame();
-            if (e.Key == Key.Up || e.Key == Key.Space || e.Key == Key.W){
-                if (GameOver)
-                    ResetGame();
-                else
-                    bird.PressedJump();
-            }
-            else if(e.Key == Key.Escape)
+            else
             {
-                if (time.timeScale > 0)
-                    Pause();
-                else
-                    Unpause();
+                if (e.Key == Key.Up || e.Key == Key.Space || e.Key == Key.W)
+                {
+                    if (GameOver)
+                        ResetGame();
+                    else
+                        bird.PressedJump();
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    if (time.timeScale > 0)
+                        Pause();
+                    else
+                        Unpause();
+                }
             }
         }
         void StartGame()
@@ -175,6 +179,7 @@ namespace FlappyBirdClone
         }
         void Unpause()
         {
+            if (!gameStarted) return;
             if (GameOver) return;
             time.timeScale = 1;
             PauseMenu.Visibility= Visibility.Collapsed;
@@ -182,6 +187,7 @@ namespace FlappyBirdClone
         }
         void Pause()
         {
+            if (!gameStarted) return;
             if (GameOver) return;
             time.timeScale = 0;
             PauseMenu.Visibility= Visibility.Visible;
