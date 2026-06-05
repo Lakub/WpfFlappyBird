@@ -371,7 +371,7 @@ namespace FlappyBirdClone
 
     public class Pipe : GameElement
     {
-        int minY = 131;
+        int minY = 150;
         int maxY = 406;
         int minYDistance = -701;
         int maxYDistance = -640;

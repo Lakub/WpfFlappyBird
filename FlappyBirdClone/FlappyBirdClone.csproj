@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>images\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,9 +17,14 @@
     <None Remove="images\background haze.png" />
     <None Remove="images\background mountains.png" />
     <None Remove="images\foreground.png" />
+    <None Remove="images\icon.png" />
     <None Remove="images\mutedIcon.png" />
     <None Remove="images\pipe.png" />
     <None Remove="images\unmutedIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="images\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +56,7 @@
     <Resource Include="images\foreground.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="images\icon.png" />
     <Resource Include="images\mutedIcon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

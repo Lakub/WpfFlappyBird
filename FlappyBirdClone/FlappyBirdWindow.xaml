@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:FlappyBirdClone"
         xmlns:System="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d"
+        Icon="/images/icon.png"
         Title="FlappyBirdWindow" Height="500" Width="800">
     <Window.Resources>
         <FontFamily x:Key="font"  >fonts/#Terminal Grotesque Open</FontFamily>
@@ -136,7 +137,7 @@
                     <StackPanel Orientation="Horizontal" Name="UserInputScoreInput">
                         <TextBlock DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="26">Name:</TextBlock>
                         <TextBox x:Name="UserInputScoreName" Background="Transparent" BorderBrush="Black" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" Text="ABC" FontSize="26" Margin="10,0,20,0"></TextBox>
-                        <Button Click="AddScoreButton" Background="Transparent" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="26">Apply</Button>
+                        <Button Click="AddScoreButton" Background="Gray" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="26">Apply</Button>
                     </StackPanel>
                 </StackPanel>
                 <TextBlock Grid.Row="0" Grid.Column="0" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="60">Game Over</TextBlock>
