@@ -2,26 +2,21 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.IO;
 using System.Media;
-using System.Text;
+using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Documents.DocumentStructures;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using System.Windows.Navigation;
+using System.Windows.Resources;
 using System.Windows.Shapes;
 using FlappyBirdClone.Models;
 using Microsoft.EntityFrameworkCore;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace FlappyBirdClone
 {
@@ -92,13 +87,22 @@ namespace FlappyBirdClone
         }
         TextBlock scoreCounter;
         AppDbContext context;
+        public SoundManager soundManager
+        {
+            get;
+            private set;
+        }
         public FlappyBirdWindow()
         {
             InitializeComponent();
             context = new();
+            soundManager = new(this);
+            soundManager.AddSound("JumpedSound").AddSound("ScoredPointSound").AddSound("HitPipeSound");
             muted = true;
             GameOverMenu.Visibility = Visibility.Collapsed;
+            GameOverMenu.UpdateLayout();
             PauseMenu.Visibility = Visibility.Collapsed;
+            PauseMenu.UpdateLayout();
             StartMenu.Visibility = Visibility.Visible;
             scoreCounter = ScoreCounterTextBlock;
             points = 0;
@@ -120,6 +124,7 @@ namespace FlappyBirdClone
             bird = new Bird(BirdSprite, this);
             templatePipe = new Pipe(PipeSprite, this, false);
             templatePipe.enabled = false;
+            GetTop5ScoresAsync();
             CompositionTarget.Rendering += UpdateGameElements;
             SizeChanged += ResizeCanvas;
             KeyDown += AlertBirdKeyboard;
@@ -174,7 +179,6 @@ namespace FlappyBirdClone
             time.timeScale = 1;
             PauseMenu.Visibility= Visibility.Collapsed;
             SoundButtonParent.Visibility=Visibility.Collapsed;
-            sw.Restart();
         }
         void Pause()
         {
@@ -214,7 +218,7 @@ namespace FlappyBirdClone
         }
         public void ResizeCanvas(object sender, SizeChangedEventArgs e)
         {
-            var scale = (GameCanvas.LayoutTransform as ScaleTransform);
+            var scale = (GameGrid.LayoutTransform as ScaleTransform);
             var diffHeight = (e.NewSize.Height- canvasWindowOriginalHeightDiff) / originalSize.Height;
             var diffWidth = e.NewSize.Width / originalSize.Width;
             double scaleVal = 0;
@@ -285,11 +289,40 @@ namespace FlappyBirdClone
         public async void StopGame()
         {
             GameOver = true;
+            soundManager.PlaySound("HitPipeSound");
             UserInputScoreInput.Visibility = Visibility.Visible;
             ScorePresentTextBlock.Text = "Score: " + points;
             SoundButtonParent.Visibility = Visibility.Visible;
             GameOverMenu.Visibility = Visibility.Visible;
             LeaderboardScoresTable.ItemsSource = await GetTop5ScoresAsync();
+        }
+    }
+
+    public class SoundManager
+    {
+        Dictionary<string, SoundPlayer> sounds;
+        FlappyBirdWindow window;
+        public SoundManager(FlappyBirdWindow window) {
+            sounds = new();
+            this.window = window;
+        }
+
+        public void PlaySound(string key)
+        {
+            if (!window.muted)
+                sounds[key].Play();
+        }
+
+        public SoundManager AddSound(string ResourceKey)
+        {
+            var uri = window.FindResource(ResourceKey) as Uri;
+            var stream = Application.GetResourceStream(uri);
+            sounds.Add(ResourceKey, new SoundPlayer(stream.Stream));
+            
+            //var r = window.FindResource(ResourceKey);
+            //StreamReader sr = new((r as Uri).ToString());
+            //
+            return this;
         }
     }
     public abstract class GameElement
@@ -500,6 +533,7 @@ namespace FlappyBirdClone
             if (!gavePoints && x <= 49 && topPipe != null)
             {
                 gameWindow.points += 1;
+                gameWindow.soundManager.PlaySound("ScoredPointSound");
                 gavePoints = true;
             }
             if (x <= endingX)
@@ -533,6 +567,7 @@ namespace FlappyBirdClone
                 if (jumpPressed)
                 {
                     verticalAcceleration = 400;
+                    gameWindow.soundManager.PlaySound("JumpedSound");
                 }
                 else
                 {
@@ -541,13 +576,14 @@ namespace FlappyBirdClone
             }
             else
             {
-                verticalAcceleration -= 850 * gameWindow.time.deltaSeconds;
+                verticalAcceleration -= 1850 * gameWindow.time.deltaSeconds;
             }
             rotateTransform.Angle += -verticalAcceleration * 5 * gameWindow.time.deltaSeconds;
             rotateTransform.Angle = Math.Clamp(rotateTransform.Angle, -30, 30);
             Move(0, verticalAcceleration * gameWindow.time.deltaSeconds);
-            if (IsColliding())
+            if (IsColliding()){
                 gameWindow.StopGame();
+            }
             jumpPressed = false;
         }
 
@@ -557,13 +593,18 @@ namespace FlappyBirdClone
             if (bounds.Any(e => e.Y >= 440))
             {
                 enabled = false;
+                if (gameWindow.GameOver)
+                    return false;
                 return true;
             }
             if (!gameWindow.GameOver)
                 foreach (var pipe in gameWindow.pipes)
                 {
                     if (!pipe.enabled) continue;
-                    if (pipe.IsCollidingWithBird(bounds)) return true;
+                    if (pipe.IsCollidingWithBird(bounds))
+                    {
+                        return true;
+                    }
                 }
             return false;
         }

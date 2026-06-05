@@ -21,6 +21,9 @@
     <None Remove="images\mutedIcon.png" />
     <None Remove="images\pipe.png" />
     <None Remove="images\unmutedIcon.png" />
+    <None Remove="sounds\hit_pipe.wav" />
+    <None Remove="sounds\jump_sound.wav" />
+    <None Remove="sounds\new_point.wav" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,6 +72,30 @@
     <Resource Include="images\unmutedIcon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="sounds\hit_pipe.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="sounds\jump_sound.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="sounds\new_point.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
