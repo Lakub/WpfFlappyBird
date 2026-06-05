@@ -129,16 +129,16 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <WrapPanel>
-                                    <TextBlock FontFamily="{StaticResource  font}" FontSize="26" Text="{Binding UserName}" FontWeight="Bold" />
+                                    <TextBlock FontFamily="{StaticResource  font}" MaxWidth="150" FontSize="26" Text="{Binding UserName}" FontWeight="Bold" />
                                     <TextBlock FontFamily="{StaticResource  font}" FontSize="26" Text=": "/>
-                                    <TextBlock FontFamily="{StaticResource  font}" FontSize="26" Text="{Binding Points}"/>
+                                    <TextBlock FontFamily="{StaticResource  font}" MaxWidth="50" FontSize="26" Text="{Binding Points}"/>
                                 </WrapPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <StackPanel Orientation="Horizontal" Name="UserInputScoreInput">
                         <TextBlock DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="26">Name:</TextBlock>
-                        <TextBox x:Name="UserInputScoreName" Background="Transparent" BorderBrush="Black" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" Text="ABC" FontSize="26" Margin="10,0,20,0"></TextBox>
+                        <TextBox x:Name="UserInputScoreName" Background="Transparent" BorderBrush="Black" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" Text="ABC" MaxWidth="200" FontSize="26" Margin="10,0,20,0"></TextBox>
                         <Button Click="AddScoreButton" Background="Gray" DockPanel.Dock="Top" FontFamily="{StaticResource  font}" FontSize="26">Apply</Button>
                     </StackPanel>
                 </StackPanel>
